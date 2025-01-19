@@ -1,0 +1,65 @@
+local hitCount = 0
+local resetHitCountTask
+
+game.ReplicatedStorage.ComboEvent.OnServerEvent:Connect(function(plr)
+	spawn(function()
+		plr.Character.Humanoid.WalkSpeed = 7
+		task.wait(.3125)
+		plr.Character.Humanoid.WalkSpeed = 16
+	end)
+
+	local hitbox = Instance.new("Part")
+
+	hitbox.Parent = workspace
+	hitbox.CanCollide = false
+	hitbox.Anchored = true
+	hitbox.Size = Vector3.new(4, 4, 4)
+	hitbox.BrickColor = BrickColor.new("Red")
+	hitbox.Transparency = .5
+	hitbox.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, -3)
+	game.Debris:AddItem(hitbox, .3125)
+
+	local BV = Instance.new("BodyVelocity")
+	BV.MaxForce, BV.Velocity = Vector3.new(5e4, 5e2, 5e4), plr.Character.HumanoidRootPart.CFrame.LookVector * 10
+	BV.Parent = plr.Character.HumanoidRootPart
+	game.Debris:AddItem(BV, .16)
+
+	local hitboxcooldown = false
+	hitbox.Touched:Connect(function(hit)
+		if hit.Parent.Name ~= plr.Name and hit.Parent:FindFirstChild("Humanoid") then
+			if hitboxcooldown == true then return end
+			hitboxcooldown = true
+
+			hit.Parent:FindFirstChild("Humanoid"):TakeDamage(5)
+			local sound = script.HitSFX.hit_punch_l:Clone()
+			sound.Parent = hit.Parent.HumanoidRootPart
+			sound:Play()
+			game.Debris:AddItem(sound, 1)
+
+			hitCount = hitCount + 1
+			if resetHitCountTask then
+				task.cancel(resetHitCountTask)
+			end
+			resetHitCountTask = task.delay(1.5, function()
+				hitCount = 0
+				
+			end)
+
+			if hitCount == 5 then
+				hitCount = 0
+				local BV = Instance.new("BodyVelocity")
+				BV.MaxForce, BV.Velocity = Vector3.new(1e5, 1e3, 1e5), plr.Character.HumanoidRootPart.CFrame.LookVector * 75
+				BV.Parent = hit.Parent.HumanoidRootPart
+				game.Debris:AddItem(BV, .16)
+			end
+
+			local BV = Instance.new("BodyVelocity")
+			BV.MaxForce, BV.Velocity = Vector3.new(1e5, 1e3, 1e5), plr.Character.HumanoidRootPart.CFrame.LookVector * 10
+			BV.Parent = hit.Parent.HumanoidRootPart
+			game.Debris:AddItem(BV, .16)
+
+			task.wait(1)
+			hitboxcooldown = false
+		end
+	end)
+end)
