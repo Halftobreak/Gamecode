@@ -1,0 +1,77 @@
+
+
+local UIS = game:GetService("UserInputService")
+
+
+
+local plr = game.Players.LocalPlayer
+local character = plr.Character or plr.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local M1 = humanoid:LoadAnimation(script.PunchAnimations.PM1)
+local M2 = humanoid:LoadAnimation(script.PunchAnimations.PM2)
+local M3 = humanoid:LoadAnimation(script.PunchAnimations.PM3)
+local M4 = humanoid:LoadAnimation(script.PunchAnimations.PM4)
+local M5 = humanoid:LoadAnimation(script.PunchAnimations.PM5)
+
+local combo = 1
+local cooldown = false
+local lastcooldown = false
+local lastComboTime = 0
+
+local function isStunned()
+	return character:GetAttribute("Stunned") == true
+end
+
+UIS.InputEnded:Connect(function(I,E)
+	if E then return end
+	if I.UserInputType == Enum.UserInputType.MouseButton1 then
+		if isStunned() then
+			return -- Stop the attack logic if stunned
+		end
+		if cooldown == true then return end
+		if lastcooldown == true then return end
+		spawn(function()
+			cooldown = true
+			script.PMSFX:play()
+			task.wait(.3125)
+			cooldown = false
+		end)
+		if combo == 5 then
+			game.ReplicatedStorage.ComboEvent:FireServer()
+			M5:Play()
+			spawn(function()
+				lastcooldown = true
+				task.wait(1)
+				lastcooldown = false
+			end)
+			spawn(function()
+				task.wait(.1)
+				combo = 1
+			end)
+		elseif combo == 4 then
+			game.ReplicatedStorage.ComboEvent:FireServer()
+			M4:Play()
+			combo = combo + 1
+		elseif combo == 3 then
+			game.ReplicatedStorage.ComboEvent:FireServer()
+			M3:Play()
+			combo = combo + 1
+		elseif combo == 2 then
+			game.ReplicatedStorage.ComboEvent:FireServer()
+			M2:Play()
+			combo = combo + 1
+		elseif combo == 1 then
+			game.ReplicatedStorage.ComboEvent:FireServer()
+			M1:Play()
+			combo = combo + 1
+		end
+		lastComboTime = tick()
+	end
+end)
+
+while true do
+	task.wait(1.5) -- reset combo after 2 seconds
+	if tick() - lastComboTime > 1.5 then
+		combo = 1
+	end
+end
