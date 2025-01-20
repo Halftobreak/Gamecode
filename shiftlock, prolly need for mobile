@@ -1,0 +1,32 @@
+---- ShiftLockScript
+-- LocalScript
+
+-- Get the UserInputService and Workspace
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- Create a variable to keep track of whether shift lock is on or off
+local shiftLocked = false
+
+-- Function to handle shift key being pressed or released
+local function onShiftKeyDown(input)
+	if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then
+		shiftLocked = not shiftLocked
+		print("Shift lock status:", shiftLocked)
+		-- Only lock the shift key if it's being pressed
+		if shiftLocked then
+			UserInputService.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+			-- Lock the avatar's orientation to the camera's facing direction
+			local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+			local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+			humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position, humanoidRootPart.Position + Camera.CFrame.LookVector)
+		else
+			UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+		end
+	end
+end
+
+-- Connect the onShiftKeyDown function to the InputBegan event
+UserInputService.InputBegan:Connect(onShiftKeyDown)
